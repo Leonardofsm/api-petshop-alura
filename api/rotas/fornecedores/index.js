@@ -1,21 +1,42 @@
 const roteador = require('express').Router()
 const TabelaFornecedor = require('./TabelaFornecedor')
 const Fornecedor = require('./Fornecedor')
+const { request, response } = require('express')
 
-roteador.get('/', async (requisicao, resposta) => {
-    const resultados = await TabelaFornecedor.listar()
-    resposta.send(
-        JSON.stringify(resultados)
-    )
+roteador.get('/', async (request, response) => {
+    try{
+        const resultados = await TabelaFornecedor.listar()
+        response.status(200)
+        response.send(
+            JSON.stringify(resultados)
+        )
+    } catch(erro) {
+        response.status(404)
+        response.send(
+            JSON.stringify(
+                {mensagem: erro.message}
+            )
+        )
+    }
 })
 
-roteador.post('/', async (requisicao, resposta) => {
-    const dadosRecebidos = requisicao.body
-    const fornecedor = new Fornecedor(dadosRecebidos)
-    await fornecedor.criar()
-    resposta.send(
-        JSON.stringify(fornecedor)
-    )
+roteador.post('/', async (request, response) => {
+    try{
+        const dadosRecebidos = request.body
+        const fornecedor = new Fornecedor(dadosRecebidos)
+        await fornecedor.criar()
+        response.status(201)
+        response.send(
+            JSON.stringify(fornecedor)
+        )
+    } catch (erro) {
+        response.status(400)
+        response.send(
+            JSON.stringify(
+                {mensagem: erro.message}
+            )
+        )
+    }
 })
 
 roteador.get('/:idFornecedor', async (request, response) => {
@@ -23,10 +44,12 @@ roteador.get('/:idFornecedor', async (request, response) => {
             const id = request.params.idFornecedor
             const fornecedor = new Fornecedor({ id: id })
             await fornecedor.carregar()
+                response.status(200)
                 response.send(
                     JSON.stringify(fornecedor)
                 )
         } catch (erro) {
+            response.status(404)
             response.send(
                 JSON.stringify({
                     mensagem: erro.message
@@ -35,15 +58,35 @@ roteador.get('/:idFornecedor', async (request, response) => {
         }
 })
 
-roteador.patch('/:idFornecedor', async (request, response) => {
+roteador.put('/:idFornecedor', async (request, response) => {
     try{
         const id = request.params.idFornecedor
         const dadosRecebidos = request.body
         const dados = Object.assign({}, dadosRecebidos, {id: id})
         const fornecedor = new Fornecedor(dados)
         await fornecedor.atualizar()
+        response.status(204)
         response.end()
     } catch (erro) {
+        response.status(400)
+        response.send(
+            JSON.stringify({
+                mensagem: erro.message
+            })
+        )
+    }
+})
+
+roteador.delete('/:idFornecedor', async (request, response) => {
+    try{
+        const id = request.params.idFornecedor
+        const fornecedor = new Fornecedor({id: id})
+        await fornecedor.carregar()
+        await fornecedor.remover()
+        response.status(204)
+        response.end()
+    } catch (erro) {
+        response.status(404)
         response.send(
             JSON.stringify({
                 mensagem: erro.message
