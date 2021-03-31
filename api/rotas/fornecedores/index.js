@@ -35,4 +35,21 @@ roteador.get('/:idFornecedor', async (request, response) => {
         }
 })
 
+roteador.patch('/:idFornecedor', async (request, response) => {
+    try{
+        const id = request.params.idFornecedor
+        const dadosRecebidos = request.body
+        const dados = Object.assign({}, dadosRecebidos, {id: id})
+        const fornecedor = new Fornecedor(dados)
+        await fornecedor.atualizar()
+        response.end()
+    } catch (erro) {
+        response.send(
+            JSON.stringify({
+                mensagem: erro.message
+            })
+        )
+    }
+})
+
 module.exports = roteador
