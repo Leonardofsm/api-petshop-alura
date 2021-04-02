@@ -2,12 +2,12 @@ const TabelaFornecedor = require('./TabelaFornecedor')
 const CampoInvalido = require('../../erros/CampoInvalido')
 const DadosNaoFornecidos = require('../../erros/DadosNaoFornecidos')
 class Fornecedor {
-    constructor({ id, empresa, email, categoria, dataCricao, dataAtualizacao, versao }) {
+    constructor({ id, empresa, email, categoria, dataCriacao, dataAtualizacao, versao }) {
         this.id = id
         this.empresa = empresa
-        this. email = email
+        this.email = email
         this.categoria = categoria 
-        this.dataCricao = dataCricao
+        this.dataCriacao = dataCriacao
         this.dataAtualizacao = dataAtualizacao
         this.versao = versao
     }
@@ -20,7 +20,7 @@ class Fornecedor {
             categoria: this.categoria
         })
         this.id = resultado.id
-        this.dataCricao = resultado.dataCricao
+        this.dataCriacao = resultado.dataCriacao
         this.dataAtualizacao = resultado.dataAtualizacao
         this.versao = resultado.versao
     }
@@ -28,9 +28,9 @@ class Fornecedor {
     async carregar () {
         const encontrado = await TabelaFornecedor.pegarPorId(this.id)
         this.empresa = encontrado.empresa
-        this.email = encontrado.mail
+        this.email = encontrado.email
         this.categoria = encontrado.categoria
-        this.dataCricao = encontrado.dataCricao
+        this.dataCriacao = encontrado.dataCriacao
         this.dataAtualizacao = encontrado.dataAtualizacao
         this.versao = encontrado.versao
     }
