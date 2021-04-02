@@ -2,10 +2,55 @@ const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const config = require('config')
+const NaoEncontrado = require('./erros/NaoEncontrado')
+const CampoInvalido = require('./erros/CampoInvalido')
+const DadosNaoFornecidos = require('./erros/DadosNaoFornecidos')
+const ValorNaoSuportado = require('./erros/ValorNaoSuportado')
+const formatosAceitos = require('./Serializador').formatosAceitos
 
 app.use(bodyParser.json())
 
+app.use((request, response, proximo) => {
+    let formatoRequisitado = request.header('Accept')
+
+    if(formatoRequisitado === '*/*') {
+        formatoRequisitado = 'application/json'
+    }
+    if(formatosAceitos.indexOf(formatoRequisitado) === -1){
+        response.status(406)
+        response.end()
+        return
+    }
+
+    response.setHeader('Content-Type', formatoRequisitado)
+    proximo()
+})
+
 const roteador = require('./rotas/fornecedores')
 app.use('/api/fornecedores', roteador)
+
+app.use((erro, request, response, proximo) => {
+    let status = 500
+
+    if(erro instanceof NaoEncontrado) {
+        status = 404
+    } 
+
+    if(erro instanceof CampoInvalido || erro instanceof DadosNaoFornecidos) {
+        status = 400
+    }
+
+    if(erro instanceof ValorNaoSuportado){
+        status = 406
+    }
+    
+    response.status(status)
+    response.send(
+        JSON.stringify({
+            mensagem: erro.message,
+            id: erro.idErro
+        })
+    )
+})
 
 app.listen(config.get('api.porta'), () => console.log('A API está funcionando!'))
