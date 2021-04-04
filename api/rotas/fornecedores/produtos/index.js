@@ -23,6 +23,10 @@ roteador.post('/', async (request, response, proximo) => {
         const serializador = new SerializadorProduto(
             response.getHeader('Content-Type')
         )
+        response.set('ETag', produto.versao)
+        const timestamp = (new Date(produto.dataAtualizacao)).getTime()
+        response.set('Last-Modified', timestamp)
+        response.set('Location', `/api/fornecedores/${produto.fornecedor}/produtos/${produto.id}`)
         response.status(201)
         response.send(
             serializador.serializar(produto)
@@ -55,9 +59,30 @@ roteador.get('/:id', async (request, response, proximo) => {
             response.getHeader('Content-Type'),
             ['preco', 'estoque', 'fornecedor', 'dataCriacao', 'dataAtualizacao', 'versao']
         )
+        response.set('ETag', produto.versao)
+        const timestamp = (new Date(produto.dataAtualizacao)).getTime()
+        response.set('Last-Modified', timestamp)
         response.send(
             serializador.serializar(produto)
         )
+    } catch (erro) {
+        proximo(erro)
+    }
+})
+
+roteador.head('/:id', async (request, response, proximo) => {
+    try{
+        const dados = {
+            id: request.params.id,
+            fornecedor: request.fornecedor.id
+        }
+        const produto = new Produto(dados)
+        await produto.carregar()
+        response.set('ETag', produto.versao)
+        const timestamp = (new Date(produto.dataAtualizacao)).getTime()
+        response.set('Last-Modified', timestamp)
+        response.status(200)
+        response.end()
     } catch (erro) {
         proximo(erro)
     }
@@ -75,6 +100,10 @@ roteador.put('/:id', async (request, response, proximo) => {
         )
         const produto = new Produto(dados)
         await produto.atualizar()
+        await produto.carregar()
+        response.set('ETag', produto.versao)
+        const timestamp = (new Date(produto.dataAtualizacao)).getTime()
+        response.set('Last-Modified', timestamp)
         response.status(204)
         response.end()
     } catch (erro) {
@@ -91,6 +120,10 @@ roteador.post('/:id/diminuir-estoque', async (request, response, proximo) => {
         await produto.carregar()
         produto.estoque = produto.estoque - request.body.quantidade
         await produto.diminuirEstoque()
+        await produto.carregar()
+        response.set('ETag', produto.versao)
+        const timestamp = (new Date(produto.dataAtualizacao)).getTime()
+        response.set('Last-Modified', timestamp)
         response.status(204)
         response.end()
     } catch(erro) {
