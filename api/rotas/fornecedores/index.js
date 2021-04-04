@@ -89,6 +89,19 @@ roteador.delete('/:idFornecedor', async (request, response, proximo) => {
 })
 
 const roteadorProdutos = require('./produtos')
-roteador.use('/:idFornecedor/produtos', roteadorProdutos)
+
+const verificarFornecedor = async (request, response, proximo) => {
+    try {
+        const id = request.params.idFornecedor
+        const fornecedor = new Fornecedor({id: id})
+        await fornecedor.carregar()
+        request.fornecedor = fornecedor
+        proximo()
+    } catch (erro) {
+        proximo(erro)
+    }
+}
+ 
+roteador.use('/:idFornecedor/produtos', verificarFornecedor, roteadorProdutos)
 
 module.exports = roteador
