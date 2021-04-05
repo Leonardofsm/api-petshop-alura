@@ -27,6 +27,12 @@ app.use((request, response, proximo) => {
     proximo()
 })
 
+// TODO - Liberar cors no nodejs
+// app.use((response, request, proximo) => {
+//     response.set('Access-Control-Allow-Origin', '*')
+//     proximo()
+// })
+
 const roteador = require('./rotas/fornecedores')
 app.use('/api/fornecedores', roteador)
 
